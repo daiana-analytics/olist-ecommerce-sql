@@ -40,24 +40,24 @@
 
 ## Evidence (screenshots)
 
-All outputs are already captured in **`./screenshot/`** for reproducibility:
+All outputs are already captured in **`./screenshots/`** for reproducibility:
 
 - **06 — KPI snapshot:**  
-  [`readme_06_bi_kpi_summary.png`](./screenshot/readme_06_bi_kpi_summary.png)
+  [`readme_06_bi_kpi_summary.png`](./screenshots/readme_06_bi_kpi_summary.png)
 - **07 — Daily sales:**  
-  [`readme_07_bi_daily_sales.png`](./screenshot/readme_07_bi_daily_sales.png)
+  [`readme_07_bi_daily_sales.png`](./screenshots/readme_07_bi_daily_sales.png)
 - **08 — Payment mix:**  
-  [`readme_08_bi_payment_mix.png`](./screenshot/readme_08_bi_payment_mix.png)
+  [`readme_08_bi_payment_mix.png`](./screenshots/readme_08_bi_payment_mix.png)
 - **09 — Late orders (top by lead time):**  
-  [`readme_09_bi_late_orders.png`](./screenshot/readme_09_bi_late_orders.png)
+  [`readme_09_bi_late_orders.png`](./screenshots/readme_09_bi_late_orders.png)
 - **10 — Lead-time distribution:**  
-  [`readme_10_bi_lead_time_dist.png`](./screenshot/readme_10_bi_lead_time_dist.png)
+  [`readme_10_bi_lead_time_dist.png`](./screenshots/readme_10_bi_lead_time_dist.png)
 - **11 — Category × month:**  
-  [`readme_11_bi_category_monthly.png`](./screenshot/readme_11_bi_category_monthly.png)
+  [`readme_11_bi_category_monthly.png`](./screenshots/readme_11_bi_category_monthly.png)
 - **12 — Lead time by state (avg / p50 / p90):**  
-  [`readme_12_bi_state_lead_time.png`](./screenshot/readme_12_bi_state_lead_time.png)
+  [`readme_12_bi_state_lead_time.png`](./screenshots/readme_12_bi_state_lead_time.png)
 - **13 — Repeat customers:**  
-  [`readme_13_bi_repeat_customers.png`](./screenshot/readme_13_bi_repeat_customers.png)
+  [`readme_13_bi_repeat_customers.png`](./screenshots/readme_13_bi_repeat_customers.png)
 
 ## Quick notes
 - **Reproducible & idempotent** — safe to re-run (`CREATE OR ALTER VIEW`)  
