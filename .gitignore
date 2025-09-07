@@ -416,3 +416,37 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# --- SQL/BI repo extras (Olist) ---
+
+# Datos locales — no versionar
+/data/
+/datasets/
+/local/
+/tmp/
+/temp/
+*.csv
+*.tsv
+*.parquet
+*.xlsx
+*.xls
+*.json
+*.zip
+*.7z
+*.rar
+
+# Secretos (algunos ya están arriba; duplicados no afectan)
+.env
+*.env
+*.key
+*.pem
+*.pfx
+*.creds
+
+# Power BI (opcional: quita si quieres subirlos)
+*.pbix
+*.pbit
+
+# Permitir ejemplos pequeños aunque *.csv esté ignorado
+!docs/samples/**
+!docs/sample-data/**
