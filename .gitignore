@@ -454,3 +454,7 @@ FodyWeavers.xsd
 # Ignore local note files
 /sql_server/03_bi/README.txt
 /sql_server/99_quality/README.txt
+
+# Notas locales
+/sql_server/03_bi/README.txt
+/sql_server/99_quality/README.txt
