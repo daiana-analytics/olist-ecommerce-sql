@@ -450,3 +450,7 @@ FodyWeavers.xsd
 # Permitir ejemplos pequeños aunque *.csv esté ignorado
 !docs/samples/**
 !docs/sample-data/**
+
+# Ignore local note files
+/sql_server/03_bi/README.txt
+/sql_server/99_quality/README.txt
