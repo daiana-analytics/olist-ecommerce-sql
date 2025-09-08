@@ -15,7 +15,6 @@ Sets up the base environment for the **Olist** project in SQL Server and prints 
 - SQL Server 2019+ (or Azure SQL DB), SSMS or Azure Data Studio.
 
 ## Run (order)
-```sql
 -- 1) Create DB and schemas
 :r .\00_create_database_and_schemas.sql
 
@@ -34,3 +33,6 @@ GO
   4. FKs to/from `clean`
   5. View dependencies in `quality`/`bi`
   6. Graphviz edges for a quick ER diagram
+
+
+
