@@ -26,7 +26,8 @@ BEGIN
 END
 GO
 
--- Keep log simple for a portfolio DB
+-- Keep SIMPLE recovery for a lightweight, portfolio database.
+-- In production you'd likely use FULL for point-in-time recovery
 ALTER DATABASE olist_sqlsrv SET RECOVERY SIMPLE WITH NO_WAIT;
 GO
 

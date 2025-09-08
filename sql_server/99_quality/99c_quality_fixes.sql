@@ -1,10 +1,9 @@
 /*==============================================================================
-  Projet   : Olist - SQL - Server
+  Project  : Olist - SQL Server
   Script   : 99c_quality_fixes.sql
   Purpose  : Publish final “quality-safe” views and summaries after deep checks.
   Context  : Olist dataset on SQL Server (schema: clean.*)
-  Author   : Daiana Beltran
-  Date     : 2025-09-05
+  Author   : Daiana Beltrán
   Notes    :
     - This script does NOT mutate source tables. It exposes views:
         * quality.invalid_orders_time_logic      -> one row per violation
@@ -20,21 +19,12 @@
 USE olist_sqlsrv;
 GO
 
-/*------------------------------------------------------------------------------
-  0) Namespace for quality artifacts
-------------------------------------------------------------------------------*/
+/* 0) Namespace for quality artifacts */
 IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'quality')
     EXEC('CREATE SCHEMA quality');
 GO
 
-/*------------------------------------------------------------------------------
-  1) Define temporal logic violations (all reasons, multi-hit per order)
-     Business rules enforced:
-       T1: approved_at  < purchase_timestamp
-       T2: carrier_date < approved_at
-       T3: customer_date < carrier_date
-       T4: customer_date < purchase_timestamp
-------------------------------------------------------------------------------*/
+/* 1) Temporal logic violations (multi-hit per order) */
 CREATE OR ALTER VIEW quality.invalid_orders_time_logic
 AS
 WITH base AS (
@@ -83,18 +73,14 @@ CROSS APPLY (
 WHERE v.violation_description IS NOT NULL;
 GO
 
-/*------------------------------------------------------------------------------
-  2) Distinct set of invalid order_ids (matches the OR-combined query result)
-------------------------------------------------------------------------------*/
+/* 2) Distinct invalid order_ids */
 CREATE OR ALTER VIEW quality.invalid_orders_ids
 AS
 SELECT DISTINCT order_id
 FROM quality.invalid_orders_time_logic;
 GO
 
-/*------------------------------------------------------------------------------
-  3) Compact summary of violations (count by reason)
-------------------------------------------------------------------------------*/
+/* 3) Summary of violations */
 CREATE OR ALTER VIEW quality.invalid_orders_summary
 AS
 SELECT
@@ -105,9 +91,7 @@ FROM quality.invalid_orders_time_logic
 GROUP BY violation_code, violation_description;
 GO
 
-/*------------------------------------------------------------------------------
-  4) Valid orders view: remove any order that has at least one violation
-------------------------------------------------------------------------------*/
+/* 4) Valid orders = clean.orders minus violations */
 CREATE OR ALTER VIEW quality.valid_orders
 AS
 SELECT o.*
@@ -119,9 +103,7 @@ WHERE NOT EXISTS (
 );
 GO
 
-/*------------------------------------------------------------------------------
-  5) Valid order_items and payments scoped to valid orders
-------------------------------------------------------------------------------*/
+/* 5) Valid order_items and payments scoped to valid orders */
 CREATE OR ALTER VIEW quality.order_items_valid
 AS
 SELECT oi.*
@@ -138,13 +120,7 @@ INNER JOIN quality.valid_orders AS vo
     ON vo.order_id = p.order_id;
 GO
 
-/*------------------------------------------------------------------------------
-  6) Optional: “Repaired” orders view (non-destructive monotonic fix)
-     Idea: cascade-forward the minimum allowable timestamp to enforce:
-           purchase_timestamp <= approved_fixed <= carrier_fixed <= customer_fixed
-     - Only adjusts when a date exists AND violates the sequence.
-     - Original columns are preserved unchanged; “*_fixed” are the suggested ones.
-------------------------------------------------------------------------------*/
+/* 6) “Repaired” orders (non-destructive monotonic fix) */
 CREATE OR ALTER VIEW quality.orders_repaired
 AS
 SELECT
@@ -154,81 +130,61 @@ SELECT
     o.order_delivered_carrier_date,
     o.order_delivered_customer_date,
     o.order_estimated_delivery_date,
-
-    /* Step 1: fix approved_at against purchase */
     a.approved_fixed,
-
-    /* Step 2: fix carrier_date against purchase/approved_fixed */
     c.carrier_fixed,
-
-    /* Step 3: fix customer_date against purchase/approved_fixed/carrier_fixed */
     d.customer_fixed
 FROM clean.orders AS o
 CROSS APPLY (
-    SELECT
-        approved_fixed =
-            CASE
-                WHEN o.order_approved_at IS NOT NULL
-                 AND o.order_purchase_timestamp IS NOT NULL
-                 AND o.order_approved_at < o.order_purchase_timestamp
-                THEN o.order_purchase_timestamp
-                ELSE o.order_approved_at
-            END
+    SELECT approved_fixed =
+        CASE
+            WHEN o.order_approved_at IS NOT NULL
+             AND o.order_purchase_timestamp IS NOT NULL
+             AND o.order_approved_at < o.order_purchase_timestamp
+            THEN o.order_purchase_timestamp
+            ELSE o.order_approved_at
+        END
 ) AS a
 CROSS APPLY (
-    SELECT
-        /* floor for carrier is the max(purchase, approved_fixed) when both exist */
-        carrier_floor =
-            (SELECT MAX(v) FROM (VALUES (o.order_purchase_timestamp), (a.approved_fixed)) AS t(v)),
-        carrier_fixed =
-            CASE
-                WHEN o.order_delivered_carrier_date IS NOT NULL
-                 AND (SELECT MAX(v) FROM (VALUES (o.order_purchase_timestamp), (a.approved_fixed)) AS t(v)) IS NOT NULL
-                 AND o.order_delivered_carrier_date <
-                     (SELECT MAX(v) FROM (VALUES (o.order_purchase_timestamp), (a.approved_fixed)) AS t(v))
-                THEN (SELECT MAX(v) FROM (VALUES (o.order_purchase_timestamp), (a.approved_fixed)) AS t(v))
-                ELSE o.order_delivered_carrier_date
-            END
+    SELECT carrier_fixed =
+        CASE
+            WHEN o.order_delivered_carrier_date IS NOT NULL
+             AND (SELECT MAX(v) FROM (VALUES (o.order_purchase_timestamp),(a.approved_fixed)) AS t(v)) IS NOT NULL
+             AND o.order_delivered_carrier_date <
+                 (SELECT MAX(v) FROM (VALUES (o.order_purchase_timestamp),(a.approved_fixed)) AS t(v))
+            THEN (SELECT MAX(v) FROM (VALUES (o.order_purchase_timestamp),(a.approved_fixed)) AS t(v))
+            ELSE o.order_delivered_carrier_date
+        END
 ) AS c
 CROSS APPLY (
-    SELECT
-        /* floor for customer is the max(purchase, approved_fixed, carrier_fixed) */
-        customer_floor =
-            (SELECT MAX(v) FROM (VALUES (o.order_purchase_timestamp), (a.approved_fixed), (c.carrier_fixed)) AS t(v)),
-        customer_fixed =
-            CASE
-                WHEN o.order_delivered_customer_date IS NOT NULL
-                 AND (SELECT MAX(v) FROM (VALUES (o.order_purchase_timestamp), (a.approved_fixed), (c.carrier_fixed)) AS t(v)) IS NOT NULL
-                 AND o.order_delivered_customer_date <
-                     (SELECT MAX(v) FROM (VALUES (o.order_purchase_timestamp), (a.approved_fixed), (c.carrier_fixed)) AS t(v))
-                THEN (SELECT MAX(v) FROM (VALUES (o.order_purchase_timestamp), (a.approved_fixed), (c.carrier_fixed)) AS t(v))
-                ELSE o.order_delivered_customer_date
-            END
+    SELECT customer_fixed =
+        CASE
+            WHEN o.order_delivered_customer_date IS NOT NULL
+             AND (SELECT MAX(v) FROM (VALUES (o.order_purchase_timestamp),(a.approved_fixed),(c.carrier_fixed)) AS t(v)) IS NOT NULL
+             AND o.order_delivered_customer_date <
+                 (SELECT MAX(v) FROM (VALUES (o.order_purchase_timestamp),(a.approved_fixed),(c.carrier_fixed)) AS t(v))
+            THEN (SELECT MAX(v) FROM (VALUES (o.order_purchase_timestamp),(a.approved_fixed),(c.carrier_fixed)) AS t(v))
+            ELSE o.order_delivered_customer_date
+        END
 ) AS d;
 GO
 
-/*------------------------------------------------------------------------------
-  7) Convenience: high-level KPI snapshot (overall counts)
-------------------------------------------------------------------------------*/
+/* 7) KPI snapshot (single row) */
 CREATE OR ALTER VIEW quality.orders_quality_snapshot
 AS
 SELECT
-    (SELECT COUNT(*) FROM clean.orders)                              AS total_orders,
-    (SELECT COUNT(*) FROM quality.invalid_orders_ids)                AS invalid_orders,
-    (SELECT COUNT(*) FROM quality.valid_orders)                      AS valid_orders,
+    (SELECT COUNT(*) FROM clean.orders)   AS total_orders,
+    (SELECT COUNT(*) FROM quality.invalid_orders_ids) AS invalid_orders,
+    (SELECT COUNT(*) FROM quality.valid_orders)       AS valid_orders,
     CAST(
         CASE WHEN (SELECT COUNT(*) FROM clean.orders) = 0
              THEN 0.0
              ELSE 1.0 * (SELECT COUNT(*) FROM quality.invalid_orders_ids)
                         / NULLIF((SELECT COUNT(*) FROM clean.orders), 0)
         END AS DECIMAL(6,4)
-    ) AS invalid_ratio
-;
+    ) AS invalid_ratio;
 GO
 
-/*------------------------------------------------------------------------------
-  8) (Optional) Example selects — keep commented in the final script
-------------------------------------------------------------------------------*/
+-- (Examples left commented)
 -- SELECT TOP (20) * FROM quality.invalid_orders_time_logic ORDER BY order_purchase_timestamp;
 -- SELECT * FROM quality.invalid_orders_summary ORDER BY violation_count DESC;
 -- SELECT TOP (20) * FROM quality.valid_orders ORDER BY order_purchase_timestamp;

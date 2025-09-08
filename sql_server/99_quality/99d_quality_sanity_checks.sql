@@ -1,21 +1,20 @@
-/*==============================================================================
+﻿/*==============================================================================
   Project  : Olist - SQL Server
   Script   : 99d_quality_sanity_checks.sql
   Purpose  : Run read-only validation queries for portfolio screenshots.
   Context  : Assumes 99c_quality_fixes.sql has been executed.
-  Author   : Daiana Beltran
-  Date     : 2025-09-05
-  Notes    : This script is read-only and safe to re-run.
+  Author   : Daiana Beltrán
+  Notes    : Read-only and safe to re-run.
 ==============================================================================*/
 
 USE olist_sqlsrv;
 GO
 
--- 1) How many invalid orders? (should be 1,382 in your dataset)
+-- 1) Invalid orders (≈ 1.3k en el dataset original; tu número puede variar)
 SELECT COUNT(*) AS invalid_orders
 FROM quality.invalid_orders_ids;
 
--- 2) Do counts reconcile? (valid + invalid = total)
+-- 2) Reconciliación: valid + invalid = total
 SELECT 
   (SELECT COUNT(*) FROM clean.orders)                           AS total_orders,
   (SELECT COUNT(*) FROM quality.invalid_orders_ids)             AS invalid_orders,
@@ -24,7 +23,7 @@ SELECT
     - (SELECT COUNT(*) FROM quality.valid_orders)
     - (SELECT COUNT(*) FROM quality.invalid_orders_ids)         AS diff_should_be_zero;
 
--- 3) Repaired view should have no time-logic violations
+-- 3) La vista “reparada” no debe violar la lógica temporal
 SELECT COUNT(*) AS still_bad_after_fix
 FROM quality.orders_repaired r
 WHERE (r.approved_fixed IS NOT NULL AND r.order_purchase_timestamp IS NOT NULL 
@@ -36,20 +35,16 @@ WHERE (r.approved_fixed IS NOT NULL AND r.order_purchase_timestamp IS NOT NULL
    OR (r.customer_fixed IS NOT NULL AND r.order_purchase_timestamp IS NOT NULL
        AND r.customer_fixed < r.order_purchase_timestamp);
 
--- 4) Breakdown by violation type (useful for the README)
+-- 4) Breakdown por tipo de violación
 SELECT * 
 FROM quality.invalid_orders_summary 
 ORDER BY violation_count DESC;
 
-/*------------------------------------------------------------------------------
-  5) README � Quality ratio snapshot (single-row KPI for screenshot)
-------------------------------------------------------------------------------*/
+-- 5) Snapshot de ratio de calidad (single row para README)
 SELECT *
-FROM quality.orders_quality_snapshot;  -- total_orders, invalid_orders, valid_orders, invalid_ratio
+FROM quality.orders_quality_snapshot;
 
-/*------------------------------------------------------------------------------
-  6) README � Published views list (quality + bi if exists)
-------------------------------------------------------------------------------*/
+-- 6) Listado de vistas publicadas (quality + bi si existe)
 IF EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'bi')
 BEGIN
     SELECT SCHEMA_NAME(v.schema_id) AS schema_name,
@@ -66,3 +61,4 @@ BEGIN
     WHERE SCHEMA_NAME(v.schema_id) = 'quality'
     ORDER BY schema_name, view_name;
 END
+

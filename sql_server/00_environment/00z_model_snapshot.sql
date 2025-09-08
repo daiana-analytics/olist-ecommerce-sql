@@ -5,9 +5,18 @@
    Run     : USE olist_sqlsrv; GO  (SQL Server 2019+)
    Notes   : Read-only. Safe to re-run.
    =========================================================== */
+
 USE olist_sqlsrv;
 SET NOCOUNT ON;
 GO
+
+/* 0) Row counts by schema */
+SELECT s.name AS [schema], t.name AS [table], p.rows
+FROM sys.tables t
+JOIN sys.schemas s ON s.schema_id = t.schema_id
+JOIN sys.partitions p ON p.object_id = t.object_id AND p.index_id IN (0,1)
+WHERE s.name IN ('raw','clean','quality','bi')
+ORDER BY s.name, t.name;
 
 /* 1) Objects and columns (tables and views) */
 SELECT 

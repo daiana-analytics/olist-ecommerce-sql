@@ -4,7 +4,6 @@
   Purpose  : Extra BI views (category/month sales, state lead time, repeaters).
   Context  : Assumes 99c_quality_fixes.sql and 03a_publish_bi_views.sql were run.
   Author   : Daiana Beltran
-  Date     : 2025-09-06
   Notes    : Read-only (CREATE OR ALTER VIEW). Safe to re-run.
 ==============================================================================*/
 
@@ -12,15 +11,15 @@ USE olist_sqlsrv;
 SET NOCOUNT ON;
 GO
 
-/*------------------------------------------------------------------------------
-  (Safety) Ensure BI schema exists
-------------------------------------------------------------------------------*/
+/* Safety: ensure BI schema exists */
 IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'bi')
     EXEC('CREATE SCHEMA bi');
 GO
 
 /*------------------------------------------------------------------------------
-  1) Monthly sales by product category (delivered only)
+  1) Monthly sales by product category (grain: month_start × category)
+     Inputs : bi.v_orders_core, bi.v_order_items_enriched
+     Filter : delivered only
 ------------------------------------------------------------------------------*/
 CREATE OR ALTER VIEW bi.v_category_sales_monthly
 AS
@@ -41,7 +40,9 @@ GROUP BY
 GO
 
 /*------------------------------------------------------------------------------
-  2) Lead time by customer state (delivered only) — window + group FIX
+  2) Lead time by customer state (grain: state)
+     Inputs : bi.v_orders_core, clean.customers
+     Metrics: avg, p50, p90 (percentiles computed via window + group)
 ------------------------------------------------------------------------------*/
 CREATE OR ALTER VIEW bi.v_state_lead_time
 AS
@@ -76,14 +77,13 @@ GROUP BY customer_state;
 GO
 
 /*------------------------------------------------------------------------------
-  3) Repeat customers (counts & basic spend proxy)
+  3) Repeat customers (grain: customer_id)
+     Inputs : bi.v_orders_core, bi.v_order_items_enriched
 ------------------------------------------------------------------------------*/
 CREATE OR ALTER VIEW bi.v_repeat_customers
 AS
 WITH orders_per_c AS (
-    SELECT
-        oc.customer_id,
-        COUNT(*) AS orders_cnt
+    SELECT oc.customer_id, COUNT(*) AS orders_cnt
     FROM bi.v_orders_core AS oc
     WHERE oc.is_delivered = 1
     GROUP BY oc.customer_id
@@ -108,9 +108,9 @@ LEFT JOIN spend_per_c s
   ON s.customer_id = o.customer_id;
 GO
 
-/*------------------------------------------------------------------------------
-  4) (Optional) Example selects — keep commented (for 03d screenshots)
-------------------------------------------------------------------------------*/
+/* -- Example selects (keep commented)
 -- SELECT TOP (12) * FROM bi.v_category_sales_monthly ORDER BY month_start DESC, gross_sales DESC;
 -- SELECT TOP (10) * FROM bi.v_state_lead_time ORDER BY avg_lead_time_days DESC;
 -- SELECT TOP (15) * FROM bi.v_repeat_customers ORDER BY orders_cnt DESC;
+*/
+

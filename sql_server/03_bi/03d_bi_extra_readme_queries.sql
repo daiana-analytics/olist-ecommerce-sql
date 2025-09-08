@@ -4,7 +4,6 @@
   Purpose  : Run BI extra queries (for README screenshots of 03c views).
   Context  : Assumes 03a_publish_bi_views.sql and 03c_bi_extra_views.sql were run.
   Author   : Daiana Beltran
-  Date     : 2025-09-06
   Notes    : Read-only. Execute each block and take a screenshot of the grid.
 ==============================================================================*/
 
@@ -12,10 +11,7 @@ USE olist_sqlsrv;
 SET NOCOUNT ON;
 GO
 
-/*------------------------------------------------------------------------------
-  1) Category × Month sales (delivered only) — sample for screenshot
-      Screenshot name: readme_11_bi_category_monthly.png
-------------------------------------------------------------------------------*/
+/* 1) Category × Month sales — sample for screenshot */
 SELECT TOP (15)
     month_start,
     product_category,
@@ -24,13 +20,10 @@ SELECT TOP (15)
     freight_total,
     gross_sales
 FROM bi.v_category_sales_monthly
-ORDER BY month_start DESC, gross_sales DESC;   -- compact & business-friendly
+ORDER BY month_start DESC, gross_sales DESC;
 GO
 
-/*------------------------------------------------------------------------------
-  2) Lead time by customer state — ranks by average lead time
-      Screenshot name: readme_12_bi_state_lead_time.png
-------------------------------------------------------------------------------*/
+/* 2) Lead time by customer state — ranks by average lead time */
 SELECT TOP (12)
     customer_state,
     delivered_orders,
@@ -41,10 +34,7 @@ FROM bi.v_state_lead_time
 ORDER BY avg_lead_time_days DESC;
 GO
 
-/*------------------------------------------------------------------------------
-  3) Repeat customers — who buys more than once (quick sample)
-      Screenshot name: readme_13_bi_repeat_customers.png
-------------------------------------------------------------------------------*/
+/* 3) Repeat customers — quick sample */
 SELECT TOP (15)
     customer_id,
     orders_cnt,
@@ -53,3 +43,4 @@ SELECT TOP (15)
 FROM bi.v_repeat_customers
 ORDER BY orders_cnt DESC, gross_sales DESC;
 GO
+
