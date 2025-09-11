@@ -13,7 +13,7 @@ SQL is provided for demo/portfolio purposes; dataset ownership remains with the 
 ---
 
 ## Table of Contents
-
+- [Executive Insights (SQL): Data quality, delivery & BI-ready views](./docs/analysis/insights.md)
 - [Layered architecture](#layered-architecture)
 - [Conventions](#conventions)
 - [Quick start (runbook)](#quick-start-runbook)
