@@ -8,21 +8,21 @@
 - **Time-logic checks** (no event recorded before its prerequisite).
 - Exposed **quality-safe views** so dashboards only read clean data.
 
-**Technical validation (short)**
+**Technical validation**
 - Raw vs. clean counts match; **no orphans** (no items/payments/reviews without a parent order).
 - Keys healthy: no duplicates on **PKs** (primary keys)/**composite keys** (multi-column keys) and no NULLs in key columns.
 - **Domains** within range (allowed order statuses; review scores 1–5; non-negative payments).
 - **FKs** (foreign keys) are enabled and **trusted**.
 - **Economic consistency** (items vs. payments): differences tracked (shipping/discounts/rounding), monitored but not treated as a data-quality error.
 
-**Key results**
+**Results**
 - **Total orders:** 99,441  
 - **Invalid orders:** 1,382 (≈ **1.39%**)  
 - **Valid & delivered orders:** 95,105  
 - **On-time deliveries:** 88,595 (**late rate** = 6.85% of delivered orders)  
 - **Main time issue:** 1,359 cases where shipping was recorded **before** approval (plus 23 minor cases).
 
-**Plain explanation**  
+**Explanation**  
 The data is broadly reliable. Only ~1.4% showed timestamp inconsistencies (mostly event mis-ordering). Dashboards now read from **quality-safe** views, so numbers are consistent.
 
 ---
@@ -33,13 +33,13 @@ The data is broadly reliable. Only ~1.4% showed timestamp inconsistencies (mostl
 - **Payment mix** (share by **amount**, not by count).  
 - **Repeat customers** (unique customer ID; % of buyers with **2+ orders**).
 
-**Key results**
+**Results**
 - **Lead time:** average **12.56** days; **p50 (median)** = 10 days; **p90** = 23 days.  
 - **Late rate spike:** **Feb–Mar 2018** reached **14–19%**; later stabilized near **~7%**.  
 - **Payment mix (by amount):** **Card 78%**, **Boleto 18%** (bank slip); others small.  
 - **Repeat:** ~**3%** of customers buy more than once; **avg orders/customer ≈ 1.03**.
 
-**Plain explanation**  
+**Explanation**  
 Most orders arrive on time. A small but painful **tail** (very late orders beyond p90) hurts experience. People mostly pay by **card**; **boleto** confirms later and can delay dispatch. **Repeat** is low (~3%), so retention programs could lift revenue.
 
 ---
@@ -55,12 +55,12 @@ Pre-aggregated, clean views ready for **BI** (Business Intelligence) tools—no 
 - `bi.v_category_sales_monthly`
 - `bi.v_kpi_summary` (**KPI** = Key Performance Indicator)
 
-**Plain explanation**  
+**Explanation**  
 The heavy lifting is already done. Dashboards can plug into these views and get **ready-to-use, trustworthy numbers** out of the box.
 
 ---
 
-## What these numbers mean (business interpretation — plain-English)
+## What these numbers mean (business interpretation)
 
 - **Trust & process maturity.** Only ~1.4% of orders are filtered by time-logic rules. That points to **event sequencing** issues (systems posting “carrier” before “approval”), not missing transactions. **Quality-safe views** isolate this noise so **BI** works with clean inputs.
 
@@ -79,31 +79,37 @@ H3) **Post-delivery journeys** (nudges at D+7/14/30 days) can lift repeat from ~
 
 ---
 
-## Business recommendations (90 days)
+## Business recommendations (90 days) 
 
-1) **Regional SLA & expectation setting**  
-   - Show realistic **ETA** (Estimated Time of Arrival) by state (RR/AP/AM with wider windows) and trigger proactive alerts when risk of delay > X%.  
-   - *Owner:* **CX** (Customer Experience)/Product · *KPIs:* late_rate, **NPS**, support tickets.
+1) **Regional Service Level Agreement (SLA — delivery promise) & expectation setting**  
+   - Show realistic **Estimated Time of Arrival (ETA)** by state; use wider windows for **RR/AP/AM**.  
+   - Trigger **proactive alerts** when weekly **late_rate** > **10%** for **2 consecutive weeks**; mark **critical** if > **15%**.  
+   - *Owner:* **Customer Experience (CX)** / Product · *KPIs:* late_rate, **Net Promoter Score (NPS)**, support tickets.
 
-2) **Shift to instant payments in peak weeks**  
-   - Promote card/instant methods (e.g., **PIX**/**BNPL**—Buy Now, Pay Later—depending on market) with small incentives; remind **boleto** before expiry.  
-   - *Owner:* Payments/Product · *KPIs:* share of instant payments, approval time, late_rate.
+2) **Shift to instant payments during peak weeks**  
+   - Promote **credit card** and instant methods (e.g., **PIX** — Brazil’s instant payment, **BNPL** — Buy Now, Pay Later) with small incentives; send reminders before **boleto** expiry.  
+   - **Target:** +**5–10 pp** increase in instant-payment share in peak months; **expected impact:** −**1–2 pp** in late_rate.  
+   - *Owner:* Payments / Product · *KPIs:* share of instant payments, payment approval time, late_rate.
 
 3) **Post-delivery retention journeys**  
-   - D+7/14/30 nudges with category-based cross-sell and “2nd-purchase” coupon tests to lift **repeat** from ~3% → ~6%.  
-   - *Owner:* Growth/**CRM** (Customer Relationship Management) · *KPIs:* repeat_rate, **ARPU** (Average Revenue per User/Customer), journey conversion.
+   - Send nudges at **D+7/14/30 days** with category-based cross-sell and **second-purchase** coupon A/B tests.  
+   - **Target:** lift **repeat_rate** from ~**3%** → **6%** in 90 days; increase **Average Revenue per User (ARPU)** by **10–15%**.  
+   - *Owner:* Growth / **Customer Relationship Management (CRM)** · *KPIs:* repeat_rate, ARPU, journey conversion rate.
 
-4) **Outlier “war-room”**  
-   - Weekly review of top **p95+** late orders (95th percentile and above); tag root cause (carrier, seller, address, payment) and close loops with partners.  
-   - *Owner:* Ops · *KPIs:* **p90/p95** lead time, late tickets closed.
+4) **Quick weekly review of extreme cases (p95+)**  
+   - Weekly review of the **top p95+** late orders (95th percentile and above); tag **one root cause** per order (Carrier, Seller, Address, Payment, System), assign an owner and a due date ≤ **7 days**, and close loops with partners.  
+   - *Owner:* **Operations (Ops)** · *KPIs:* **p90/p95** lead time, # of p95+ cases closed, late-related support tickets.
 
-5) **Ongoing data quality guardrail**  
-   - Monitor `invalid_ratio` and alert if >2% weekly; BI uses only `quality.*` views as source of truth.  
-   - *Owner:* Data/BI · *KPIs:* invalid_ratio, # of violated orders by code (T2/T3).
+5) **Ongoing data-quality guardrail**  
+   - Monitor **invalid_ratio** (share of invalid orders) and alert if > **2%** weekly; ensure **Business Intelligence (BI)** uses `quality.*` views as the source of truth.  
+   - *Owner:* Data / **Business Intelligence (BI)** · *KPIs:* invalid_ratio, # of violated orders by code (T2/T3).
+
+**Why these thresholds?** Your baseline **late_rate ≈ 7%**. An **alert at 10%** flags a meaningful deterioration; **15%** mirrors historical spikes (Feb–Mar 2018 in your data). You can refine these after a few weeks of monitoring.
+
 
 ---
 
-### Quick glossary (first-time readers)
+### Quick glossary 
 - **PK/FK** = Primary/Foreign Key  
 - **Composite key** = multi-column key  
 - **Orphan** = child row without its parent (e.g., item without order)  
