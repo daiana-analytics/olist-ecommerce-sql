@@ -17,15 +17,18 @@ GO
 
 /*------------------------------------------------------------------------------
   1) Core orders (grain: 1 row per order)
-     Inputs : quality.valid_orders (vo), quality.orders_repaired (qr)
-     Fields : purchase_ts, repaired timestamps, lead_time_days, late_flag
-     Rule   : “Late” = actual_delivery_date > estimated (end-of-day inclusive)
+     Inputs : quality.valid_orders (vo), quality.orders_repaired (qr), clean.customers (c)
+     Adds   : customer_city, customer_state, (opcional) customer_unique_id
 ------------------------------------------------------------------------------*/
 CREATE OR ALTER VIEW bi.v_orders_core
 AS
 SELECT
     vo.order_id,
     vo.customer_id,
+    -- NUEVO: datos de cliente
+    c.customer_city,
+    c.customer_state,
+    -- existentes
     vo.order_status,
     vo.order_purchase_timestamp                  AS purchase_ts,
     qr.approved_fixed,
@@ -48,7 +51,9 @@ SELECT
     END AS late_flag
 FROM quality.valid_orders AS vo
 LEFT JOIN quality.orders_repaired AS qr
-  ON qr.order_id = vo.order_id;
+  ON qr.order_id = vo.order_id
+LEFT JOIN clean.customers AS c
+  ON c.customer_id = vo.customer_id;
 GO
 
 ------------------------------------------------------------------------------*/
