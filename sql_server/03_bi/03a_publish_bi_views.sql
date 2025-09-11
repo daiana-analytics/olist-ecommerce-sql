@@ -51,12 +51,11 @@ LEFT JOIN quality.orders_repaired AS qr
   ON qr.order_id = vo.order_id;
 GO
 
-/*------------------------------------------------------------------------------
-  2) Enriched order items (grain: order_id + order_item_id)
-     Inputs : quality.order_items_valid, clean.products
-     Adds   : product_category (default 'unknown')
 ------------------------------------------------------------------------------*/
-CREATE OR ALTER VIEW bi.v_order_items_enriched
+-- 2) Enriched order items (grain: order_id + order_item_id)
+--     Inputs : quality.order_items_valid, clean.products, clean.sellers
+--     Adds   : product_category + seller (id, city, state)
+CREATE OR ALTER VIEW [bi].[v_order_items_enriched]
 AS
 SELECT
     oi.order_id,
@@ -64,10 +63,15 @@ SELECT
     oi.product_id,
     COALESCE(p.product_category_name, N'unknown') AS product_category,
     oi.price,
-    oi.freight_value
-FROM quality.order_items_valid AS oi
-LEFT JOIN clean.products AS p
-  ON p.product_id = oi.product_id;
+    oi.freight_value,
+    oi.seller_id,
+    s.seller_city,
+    s.seller_state
+FROM [quality].[order_items_valid] AS oi
+LEFT JOIN [clean].[products] AS p
+  ON p.product_id = oi.product_id
+LEFT JOIN [clean].[sellers]  AS s
+  ON s.seller_id = oi.seller_id;
 GO
 
 /*------------------------------------------------------------------------------
