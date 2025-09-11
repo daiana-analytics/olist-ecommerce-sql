@@ -14,13 +14,15 @@
 - **Domains** within range (allowed order statuses; review scores 1–5; non-negative payments).
 - **FKs** (foreign keys) are enabled and **trusted**.
 - **Economic consistency** (items vs. payments): differences tracked (shipping/discounts/rounding), monitored but not treated as a data-quality error.
+- **Diagnostic sweep:** a general “earlier-than-purchase” pass flagged **166** rows (**diagnostic only**). Formal quality controls use the time-logic violations **T2/T3** below (total **1,382**) to exclude orders.
 
 **Results**
 - **Total orders:** 99,441  
 - **Invalid orders:** 1,382 (≈ **1.39%**)  
 - **Valid & delivered orders:** 95,105  
 - **On-time deliveries:** 88,595 (**late rate** = 6.85% of delivered orders)  
-- **Main time issue:** 1,359 cases where shipping was recorded **before** approval (plus 23 minor cases).
+- **Main time issue:** 1,359 cases where shipping was recorded **before** approval (plus 23 minor cases)
+- **Repaired view:** `quality.orders_repaired` leaves **0** residual time-logic violations (guarantees consistent timestamps in the fixed projection).
 
 **Explanation**  
 The data is broadly reliable. Only ~1.4% showed timestamp inconsistencies (mostly event mis-ordering). Dashboards now read from **quality-safe** views, so numbers are consistent.
@@ -36,8 +38,9 @@ The data is broadly reliable. Only ~1.4% showed timestamp inconsistencies (mostl
 **Results**
 - **Lead time:** average **12.56** days; **p50 (median)** = 10 days; **p90** = 23 days.  
 - **Late rate spike:** **Feb–Mar 2018** reached **14–19%**; later stabilized near **~7%**.  
-- **Payment mix (by amount):** **Card 78%**, **Boleto 18%** (bank slip); others small.  
+- **Payment mix (by amount):** **Credit card 78.35%**, **Boleto 17.93%**, **Voucher 2.37%**, **Debit card 1.34%**, **Not defined ~0%**. 
 - **Repeat:** ~**3%** of customers buy more than once; **avg orders/customer ≈ 1.03**.
+- **Slower states (avg lead time):** **Roraima (RR ~29.8 d)**, **Amapá (AP ~27.2 d)**, **Amazonas (AM ~26.4 d)**.
 
 **Explanation**  
 Most orders arrive on time. A small but painful **tail** (very late orders beyond p90) hurts experience. People mostly pay by **card**; **boleto** confirms later and can delay dispatch. **Repeat** is low (~3%), so retention programs could lift revenue.
@@ -54,6 +57,7 @@ Pre-aggregated, clean views ready for **BI** (Business Intelligence) tools—no 
 - `bi.v_state_lead_time`
 - `bi.v_category_sales_monthly`
 - `bi.v_kpi_summary` (**KPI** = Key Performance Indicator)
+- **Also published (helpers):** `bi.v_orders_core`, `bi.v_order_items_enriched`, `bi.v_payments_per_order`
 
 **Explanation**  
 The heavy lifting is already done. Dashboards can plug into these views and get **ready-to-use, trustworthy numbers** out of the box.
@@ -82,7 +86,7 @@ H3) **Post-delivery journeys** (nudges at D+7/14/30 days) can lift repeat from ~
 ## Business recommendations (90 days) 
 
 1) **Regional Service Level Agreement (SLA — delivery promise) & expectation setting**  
-   - Show realistic **Estimated Time of Arrival (ETA)** by state; use wider windows for **RR/AP/AM**.  
+   - Show realistic **Estimated Time of Arrival (ETA)** by state; use wider windows for slower states **Roraima (RR)**, **Amapá (AP)** and **Amazonas (AM)**.
    - Trigger **proactive alerts** when weekly **late_rate** > **10%** for **2 consecutive weeks**; mark **critical** if > **15%**.  
    - *Owner:* **Customer Experience (CX)** / Product · *KPIs:* late_rate, **Net Promoter Score (NPS)**, support tickets.
 
@@ -106,10 +110,9 @@ H3) **Post-delivery journeys** (nudges at D+7/14/30 days) can lift repeat from ~
 
 **Why these thresholds?** Your baseline **late_rate ≈ 7%**. An **alert at 10%** flags a meaningful deterioration; **15%** mirrors historical spikes (Feb–Mar 2018 in your data). You can refine these after a few weeks of monitoring.
 
-
 ---
 
-### Quick glossary 
+## Quick glossary 
 - **PK/FK** = Primary/Foreign Key  
 - **Composite key** = multi-column key  
 - **Orphan** = child row without its parent (e.g., item without order)  
