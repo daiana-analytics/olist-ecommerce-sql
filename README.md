@@ -1,3 +1,4 @@
+markdown
 # Olist e-commerce — Proyecto SQL Server (raw → clean → quality → BI)
 
 ## Objetivo
@@ -10,7 +11,7 @@ Proyecto reproducible y orientado a portfolio que construye un flujo de datos en
 
 ## Dataset
 
-**Olist e-commerce** dataset público.
+Dataset público de **Olist e-commerce**.
 
 El código SQL se proporciona con fines de demo y portfolio. La propiedad del dataset pertenece a sus autores originales.
 
@@ -20,19 +21,19 @@ El código SQL se proporciona con fines de demo y portfolio. La propiedad del da
 
 - [Insights ejecutivos SQL: calidad de datos, entregas y vistas listas para BI](./docs/analysis/insights.md)
 - [Arquitectura por capas](#arquitectura-por-capas)
-- [Convenciones](#convenciones)
-- [Quick start / Runbook](#quick-start--runbook)
+- [Criterios técnicos del proyecto](#criterios-técnicos-del-proyecto)
+- [Ejecución rápida / Runbook](#ejecución-rápida--runbook)
 - [Privilegios requeridos](#privilegios-requeridos)
-- [ERD clean](#erd-clean)
+- [ERD del modelo clean](#erd-del-modelo-clean)
 - [Controles de calidad de datos y vistas publicadas](#controles-de-calidad-de-datos-y-vistas-publicadas)
-  - [Códigos de violación lógica temporal](#códigos-de-violación-lógica-temporal)
+  - [Códigos de violación de lógica temporal](#códigos-de-violación-de-lógica-temporal)
   - [Vistas principales quality.*](#vistas-principales-quality)
   - [Validación y snapshot de KPIs](#validación-y-snapshot-de-kpis)
-  - [Deep checks / Sanity checks](#deep-checks--sanity-checks)
+  - [Controles profundos / Controles de validación](#controles-profundos--controles-de-validación)
 - [Capa BI](#capa-bi)
   - [Glosario breve](#glosario-breve)
   - [Dependencias](#dependencias)
-- [Troubleshooting](#troubleshooting)
+- [Resolución de problemas](#resolución-de-problemas)
 - [Créditos y licencia](#créditos-y-licencia)
 
 ---
@@ -44,7 +45,7 @@ El código SQL se proporciona con fines de demo y portfolio. La propiedad del da
 |    **00** | `sql_server/00_environment` | Configuración inicial: base de datos, esquemas, tipos y utilidades.                                                | [abrir](./sql_server/00_environment/README.md) |
 |    **01** | `sql_server/01_raw`         | Carga de tablas raw, manteniendo la estructura fiel a la fuente original.                                          | [abrir](./sql_server/01_raw/README.md)         |
 |    **02** | `sql_server/02_clean`       | Limpieza, estandarización y creación de claves PK/FK confiables.                                                   | [abrir](./sql_server/02_clean/README.md)       |
-|    **99** | `sql_server/99_quality`     | QA: sanity checks, deep checks y publicación de vistas `quality.*` para datos válidos, inválidos y reparados.      | [abrir](./sql_server/99_quality/README.md)     |
+|    **99** | `sql_server/99_quality`     | Controles de calidad, validaciones generales, controles profundos y publicación de vistas `quality.*`.             | [abrir](./sql_server/99_quality/README.md)     |
 |    **03** | `sql_server/03_bi`          | Capa semántica BI `bi.*` y consultas showcase: KPIs, lead time, payment mix y clientes recurrentes.                | [abrir](./sql_server/03_bi/README.md)          |
 
 ---
@@ -52,7 +53,7 @@ El código SQL se proporciona con fines de demo y portfolio. La propiedad del da
 ## Criterios técnicos del proyecto
 
 - **Nombres en formato `lower_snake_case`:** las tablas, columnas y vistas usan minúsculas y guiones bajos para mantener una estructura clara y consistente.  
-  Ejemplo: `order_id`, `customer_state`, `lead_time_days`.
+  Ejemplos: `order_id`, `customer_state`, `lead_time_days`.
 
 - **Scripts idempotentes:** los scripts están pensados para poder ejecutarse más de una vez sin romper el proyecto.  
   Por ejemplo, se usa `CREATE OR ALTER` cuando corresponde.
@@ -63,7 +64,7 @@ El código SQL se proporciona con fines de demo y portfolio. La propiedad del da
 
 ---
 
-## Quick start / Runbook
+## Ejecución rápida / Runbook
 
 Orden recomendado de ejecución:
 
@@ -110,7 +111,7 @@ USE olist_sqlsrv;
 
 ---
 
-## ERD clean
+## ERD del modelo clean
 
 - **Modelo:** [abrir](./sql_server/99_quality/screenshots/readme_00_model_clean.png)
 - **PK/FK:** [abrir](./sql_server/99_quality/screenshots/readme_00_model_clean_keys.png)
@@ -123,7 +124,7 @@ La capa `quality.*` permite identificar registros inválidos, validar reglas de 
 
 ---
 
-### Códigos de violación lógica temporal
+### Códigos de violación de lógica temporal
 
 | **Código** | **Regla detectada** |
 | ---------- | ------------------- |
@@ -159,7 +160,7 @@ Para ver el set completo de validaciones — órdenes inválidas, reconciliació
 
 ---
 
-## Deep checks / Sanity checks
+## Controles profundos / Controles de validación
 
 El proyecto incluye documentación detallada con screenshots para:
 
@@ -226,7 +227,7 @@ Esto asegura que los análisis se basen en datos validados y reparados, no direc
 
 ---
 
-## Troubleshooting
+## Resolución de problemas
 
 - **Diferencias de conteo entre RAW y CLEAN en 99a:** revisar las transformaciones de `02_clean`.
 - **Hallazgos distintos de cero en 99b:** son alertas de calidad; corregir upstream o utilizar `quality.orders_repaired` para análisis.
@@ -241,6 +242,6 @@ Esto asegura que los análisis se basen en datos validados y reparados, no direc
 - **SQL:** desarrollado con fines de portfolio y demostración
 - **Propiedad del dataset:** pertenece a sus autores originales
 - **Licencia:** ver archivo **MIT**
-
+````
 
 
