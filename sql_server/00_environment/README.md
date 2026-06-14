@@ -1,40 +1,44 @@
 # 00_environment — SQL Server
 
-Sets up the base environment for the **Olist** project in SQL Server and prints a technical snapshot of the model.
+Configura el entorno base para el proyecto **Olist** en SQL Server e imprime un snapshot técnico del modelo.
 
-## What it does
-- Creates database `olist_sqlsrv` (collation `Latin1_General_100_CI_AI_SC`) and schemas `raw`, `clean`, `bi`.
-- Keeps recovery model `SIMPLE` (portfolio-friendly).
-- Outputs a **model snapshot**: tables/views, PKs, FKs, dependencies, and Graphviz-style edges.
+## Qué hace
 
-## Files
-- `00_create_database_and_schemas.sql` — Creates DB + schemas (idempotent).
-- `00z_model_snapshot.sql` — Read-only report of the model (idempotent).
+- Crea la base de datos `olist_sqlsrv` con collation `Latin1_General_100_CI_AI_SC` y los esquemas `raw`, `clean`, `bi`.
+- Mantiene el recovery model en `SIMPLE`, amigable para portfolio.
+- Genera un **snapshot del modelo**: tablas/vistas, PKs, FKs, dependencias y edges estilo Graphviz.
 
-## Requirements
-- SQL Server 2019+ (or Azure SQL DB), SSMS or Azure Data Studio.
+## Archivos
 
-## Run (order)
+- `00_create_database_and_schemas.sql` — Crea la base de datos y los esquemas. Idempotente.
+- `00z_model_snapshot.sql` — Reporte read-only del modelo. Idempotente.
+
+## Requisitos
+
+- SQL Server 2019+ o Azure SQL DB, SSMS o Azure Data Studio.
+
+## Ejecución (orden)
+
 ```sql
--- 1) Create DB and schemas
+-- 1) Crear base de datos y esquemas
 :r .\00_create_database_and_schemas.sql
 
--- 2) Model snapshot
+-- 2) Snapshot del modelo
 USE olist_sqlsrv;
 GO
 :r .\00z_model_snapshot.sql
 ```
 
-## Expected outputs (summary)
+## Salidas esperadas (resumen)
 
-- **Database & schemas:** `olist_sqlsrv` created with collation `Latin1_General_100_CI_AI_SC`; schemas `raw`, `clean`, `bi`.
+- **Base de datos y esquemas:** `olist_sqlsrv` creada con collation `Latin1_General_100_CI_AI_SC`; esquemas `raw`, `clean`, `bi`.
 - **Grids:**
-  1. Row counts
-  2. Objects & columns
-  3. PKs in `clean`
-  4. FKs to/from `clean`
-  5. View dependencies in `quality`/`bi`
-  6. Graphviz edges for a quick ER diagram
+  1. Conteos de filas
+  2. Objetos y columnas
+  3. PKs en `clean`
+  4. FKs hacia/desde `clean`
+  5. Dependencias de vistas en `quality`/`bi`
+  6. Edges Graphviz para un diagrama ER rápido
 
 
 
