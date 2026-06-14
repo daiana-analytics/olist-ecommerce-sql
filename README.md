@@ -49,12 +49,17 @@ El código SQL se proporciona con fines de demo y portfolio. La propiedad del da
 
 ---
 
-## Convenciones
+## Criterios técnicos del proyecto
 
-- **Naming:** `lower_snake_case`
-- **Scripts idempotentes:** `CREATE OR ALTER`
-- **Percentiles SQL Server 2019+:** `PERCENTILE_CONT`
-- Todos los scripts asumen **SQLCMD Mode** habilitado en SSMS / Azure Data Studio.
+- **Nombres en formato `lower_snake_case`:** las tablas, columnas y vistas usan minúsculas y guiones bajos para mantener una estructura clara y consistente.  
+  Ejemplo: `order_id`, `customer_state`, `lead_time_days`.
+
+- **Scripts idempotentes:** los scripts están pensados para poder ejecutarse más de una vez sin romper el proyecto.  
+  Por ejemplo, se usa `CREATE OR ALTER` cuando corresponde.
+
+- **Cálculo de percentiles:** para métricas como p50, p75 o p90 se utiliza `PERCENTILE_CONT`, disponible en SQL Server 2019+.
+
+- **Ejecución con SQLCMD Mode:** algunos scripts usan `:r` para ejecutar archivos en orden desde SSMS o Azure Data Studio, por eso se requiere tener habilitado **SQLCMD Mode**.
 
 ---
 
